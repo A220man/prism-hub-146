@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "current_feature": "project-skeleton",
+  "features": [
+    {
+      "id": "project-skeleton",
+      "title": "Project skeleton with FastAPI backend and React frontend",
+      "status": "done",
+      "acceptance": [
+        "FastAPI app runs on port 8000",
+        "React app runs on port 3000",
+        "Health endpoint returns 200 OK",
+        "Frontend can call backend API"
+      ],
+      "implementation": [
+        "backend/main.py",
+        "backend/requirements.txt",
+        "frontend/package.json",
+        "frontend/src/App.tsx",
+        "frontend/src/main.tsx"
+      ],
+      "tests": [
+        "backend/tests/test_health.py"
+      ]
+    },
+    {
+      "id": "vtable-display",
+      "title": "VTable function call display in decompiler",
+      "status": "planned",
+      "acceptance": [
+        "Decompiler shows resolved vtable function names for indirect calls",
+        "User can navigate from call site to vtable target"
+      ],
+      "implementation": [],
+      "tests": []
+    },
+    {
+      "id": "switch-recognition",
+      "title": "Switch statement recognition for jump tables",
+      "status": "planned",
+      "acceptance": [
+        "Decompiler recognizes jump table patterns",
+        "Produces switch/case output instead of if/else chains"
+      ],
+      "implementation": [],
+      "tests": []
+    },
+    {
+      "id": "call-return-analysis",
+      "title": "PUSH+JMP call/return analysis",
+      "status": "planned",
+      "acceptance": [
+        "Recognizes PUSH return address + JMP as CALL",
+        "Decompiler continues after call instead of returning"
+      ],
+      "implementation": [],
+      "tests": []
+    }
+  ]
+}
