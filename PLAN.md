@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-project-skeleton
+vtable-display
 
 ## Roadmap
 
@@ -24,11 +24,15 @@ Tests: `backend/tests/test_health.py`
 
 ### vtable-display — VTable function call display in decompiler
 
-Status: planned
+Status: done
 
 Acceptance:
 - Decompiler shows resolved vtable function names for indirect calls
 - User can navigate from call site to vtable target
+
+Implementation: `backend/main.py`, `frontend/src/VTableAnalyzer.tsx`, `frontend/src/App.tsx`
+
+Tests: `backend/tests/test_vtable.py`
 
 ### switch-recognition — Switch statement recognition for jump tables
 
