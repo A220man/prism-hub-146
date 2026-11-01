@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.0.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
@@ -15,8 +19,16 @@ All notable changes to this project will be documented in this file.
 - Health check endpoint test
 - Basic project structure and documentation
 
+## [0.2.0] - 2026-11-01
+
+### Added
+- VTable function call analysis endpoint (`POST /api/vtable/analyze`)
+- Known functions listing endpoint (`GET /api/vtable/functions`)
+- VTableAnalyzer React component for interactive vtable analysis
+- Cross-reference call site display for resolved vtable functions
+- Backend tests for vtable endpoints (3 test cases)
+
 ### Planned
-- VTable function call display in decompiler
 - Switch statement recognition for jump tables
 - PUSH+JMP call/return analysis
 - M68000 lineA/lineF opcode implementation

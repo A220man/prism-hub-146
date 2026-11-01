@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import VTableAnalyzer from './VTableAnalyzer'
 
 function App() {
   const [health, setHealth] = useState<{status: string, service: string} | null>(null)
@@ -35,7 +36,7 @@ function App() {
   }, [])
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif', maxWidth: '600px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif', maxWidth: '900px', margin: '0 auto' }}>
       <h1>Prism Hub</h1>
       <p>AI/ML Developer Tools Platform</p>
       
@@ -61,6 +62,8 @@ function App() {
         )}
         {!version && <p>Loading...</p>}
       </section>
+
+      <VTableAnalyzer />
     </div>
   )
 }

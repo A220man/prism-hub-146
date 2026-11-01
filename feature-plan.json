@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "project-skeleton",
+  "current_feature": "vtable-display",
   "features": [
     {
       "id": "project-skeleton",
@@ -26,13 +26,19 @@
     {
       "id": "vtable-display",
       "title": "VTable function call display in decompiler",
-      "status": "planned",
+      "status": "done",
       "acceptance": [
         "Decompiler shows resolved vtable function names for indirect calls",
         "User can navigate from call site to vtable target"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        "backend/main.py",
+        "frontend/src/VTableAnalyzer.tsx",
+        "frontend/src/App.tsx"
+      ],
+      "tests": [
+        "backend/tests/test_vtable.py"
+      ]
     },
     {
       "id": "switch-recognition",
