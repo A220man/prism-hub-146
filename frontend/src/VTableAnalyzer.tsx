@@ -16,11 +16,30 @@ interface VTableAnalyzeResponse {
 
 function VTableAnalyzer() {
   const [className, setClassName] = useState('BaseClass');
-  const [vtableAddress, setVtableAddress] = useState('0x401000');
+  const [vtableAddress] = useState('0x401000');
   const [entries, setEntries] = useState<string>('0,0x401000\n1,0x401050\n2,0x4010a0');
   const [result, setResult] = useState<VTableAnalyzeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [knownFunctions, setKnownFunctions] = useState<Array<{address: string, name: string, signature: string}>>([]);
+  const [funcLoading, setFuncLoading] = useState(false);
+
+  const fetchKnownFunctions = async () => {
+    setFuncLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/vtable/functions');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch functions: ${response.status}`);
+      }
+      const data = await response.json();
+      setKnownFunctions(data);
+    } catch (e) {
+      setError(`Error loading functions: ${e}`);
+    } finally {
+      setFuncLoading(false);
+    }
+  };
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -70,16 +89,37 @@ function VTableAnalyzer() {
             style={{ padding: '0.5rem', width: '200px' }}
           />
         </div>
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.25rem' }}>VTable Address</label>
-          <input
-            type="text"
-            value={vtableAddress}
-            onChange={(e) => setVtableAddress(e.target.value)}
-            style={{ padding: '0.5rem', width: '200px' }}
-          />
+        <div style={{ alignSelf: 'flex-end' }}>
+          <button
+            onClick={fetchKnownFunctions}
+            disabled={funcLoading}
+            style={{ padding: '0.5rem 1rem', background: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: funcLoading ? 'not-allowed' : 'pointer' }}
+          >
+            {funcLoading ? 'Loading...' : 'Load Known Functions'}
+          </button>
         </div>
       </div>
+
+      {knownFunctions.length > 0 && (
+        <div style={{ marginBottom: '1rem', padding: '1rem', background: '#f8f9fa', borderRadius: '4px' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0' }}>Known Functions (click to add to entries)</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
+            {knownFunctions.map((func, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  const nextIndex = entries.trim().split('\n').filter(l => l.trim()).length;
+                  setEntries(prev => prev + (prev.trim() ? '\n' : '') + `${nextIndex},${func.address}`);
+                }}
+                style={{ padding: '0.25rem 0.5rem', background: '#fff', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontFamily: 'monospace' }}
+                title={`${func.name} - ${func.signature || 'no signature'}`}
+              >
+                {func.address} ({func.name})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div style={{ marginBottom: '1rem' }}>
         <label style={{ display: 'block', marginBottom: '0.25rem' }}>Entries (index,address per line)</label>
@@ -143,6 +183,7 @@ function VTableAnalyzer() {
                       <th style={{ padding: '0.5rem', border: '1px solid #ddd', textAlign: 'left' }}>Caller Function</th>
                       <th style={{ padding: '0.5rem', border: '1px solid #ddd', textAlign: 'left' }}>Instruction</th>
                       <th style={{ padding: '0.5rem', border: '1px solid #ddd', textAlign: 'left' }}>VTable Index</th>
+                      <th style={{ padding: '0.5rem', border: '1px solid #ddd', textAlign: 'left' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -152,6 +193,14 @@ function VTableAnalyzer() {
                         <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{cs.function}</td>
                         <td style={{ padding: '0.5rem', border: '1px solid #ddd', fontFamily: 'monospace' }}>{cs.instruction}</td>
                         <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>{cs.vtable_index}</td>
+                        <td style={{ padding: '0.5rem', border: '1px solid #ddd' }}>
+                          <button
+                            onClick={() => navigator.clipboard.writeText(cs.address)}
+                            style={{ padding: '0.25rem 0.5rem', background: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                          >
+                            Copy
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
