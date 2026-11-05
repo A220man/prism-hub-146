@@ -1,8 +1,21 @@
 # Changelog
 
-## 1.1.0 — work-in-progress checkpoint
+## 1.2.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.1.0 — work-in-progress checkpoint (2026-11-05)
+
+### Fixed
+- Version mismatch: backend now reports 1.1.0 matching VERSION file
+
+### Added
+- "Load Known Functions" button in VTableAnalyzer to fetch function database
+- Clickable known functions list to auto-populate vtable entries
+- Copy-to-clipboard button for call site addresses in results table
+
+### Changed
+- Frontend TypeScript compilation now passes with strict mode
 
 ## 1.0.0 — work-in-progress checkpoint
 
