@@ -60,7 +60,7 @@ async def health_check():
 
 @app.get("/api/version")
 async def version():
-    return {"version": "1.1.0", "name": "prism-hub"}
+    return {"version": "1.2.0", "name": "prism-hub"}
 
 
 @app.post("/api/vtable/analyze", response_model=VTableAnalyzeResponse)

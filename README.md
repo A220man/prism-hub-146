@@ -33,15 +33,21 @@ npm run dev
 - `GET /health` - Health check
 - `GET /api/version` - Version information
 
-## Features (Planned)
+## Features
 
-Based on Ghidra issue analysis:
+### Completed
 1. **VTable Display** - Show resolved vtable function names in decompiler
+   - Backend: `POST /api/vtable/analyze` resolves vtable entries to function names
+   - Frontend: Interactive VTable Analyzer component with call site navigation
+   - Cross-references: Shows call sites for each resolved vtable function
+
+### Planned
 2. **Switch Recognition** - Recognize jump table patterns as switch statements
 3. **Call/Return Analysis** - Handle PUSH+JMP as proper CALL with return continuation
 4. **M68000 LineA/LineF** - Implement Motorola 68000 lineA/lineF opcodes
 5. **String Display** - Display strings in decompiler across memory segments
 6. **Batch Decompilation Performance** - Improve concurrent decompilation scaling
+
 
 ## License
 
