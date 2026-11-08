@@ -1,8 +1,26 @@
 # Changelog
 
-## 1.2.0 — work-in-progress checkpoint
+## 1.3.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.2.0 — 2026-11-08
+
+### Completed
+- **VTable Display** feature fully implemented and tested:
+  - Backend: `POST /api/vtable/analyze` resolves vtable entries to function names with signatures
+  - Frontend: Interactive VTableAnalyzer component with call site navigation and copy-to-clipboard
+  - Cross-references: Shows call sites for each resolved vtable function
+  - All 5 backend tests passing (2 health + 3 vtable)
+
+### Added
+- "Load Known Functions" button in VTableAnalyzer to fetch function database
+- Clickable known functions list to auto-populate vtable entries
+- Copy-to-clipboard button for call site addresses in results table
+
+### Changed
+- Frontend TypeScript compilation now passes with strict mode
+- Updated README with completed feature documentation
 
 ## 1.1.0 — work-in-progress checkpoint (2026-11-05)
 
