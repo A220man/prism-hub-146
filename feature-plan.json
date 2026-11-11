@@ -43,13 +43,19 @@
     {
       "id": "switch-recognition",
       "title": "Switch statement recognition for jump tables",
-      "status": "planned",
+      "status": "in_progress",
       "acceptance": [
         "Decompiler recognizes jump table patterns",
         "Produces switch/case output instead of if/else chains"
       ],
-      "implementation": [],
-      "tests": []
+      "implementation": [
+        "backend/main.py",
+        "frontend/src/SwitchAnalyzer.tsx",
+        "frontend/src/App.tsx"
+      ],
+      "tests": [
+        "backend/tests/test_switch.py"
+      ]
     },
     {
       "id": "call-return-analysis",
