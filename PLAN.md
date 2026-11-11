@@ -36,11 +36,15 @@ Tests: `backend/tests/test_vtable.py`
 
 ### switch-recognition — Switch statement recognition for jump tables
 
-Status: planned
+Status: in_progress
 
 Acceptance:
 - Decompiler recognizes jump table patterns
 - Produces switch/case output instead of if/else chains
+
+Implementation: `backend/main.py`, `frontend/src/SwitchAnalyzer.tsx`, `frontend/src/App.tsx`
+
+Tests: `backend/tests/test_switch.py`
 
 ### call-return-analysis — PUSH+JMP call/return analysis
 
