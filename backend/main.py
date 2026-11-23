@@ -179,7 +179,8 @@ async def analyze_switch(request: SwitchAnalyzeRequest):
         # Use database entry
         for case in db_entry["cases"]:
             recognized_cases.append(SwitchCase(**case))
-        default_case = db_entry.get("default_case", request.default_case)
+        # Use request's default_case if provided, otherwise DB's
+        default_case = request.default_case or db_entry.get("default_case")
     else:
         # Use provided cases
         recognized_cases = request.cases
@@ -192,9 +193,13 @@ async def analyze_switch(request: SwitchAnalyzeRequest):
         decompiled_lines.append(f"        {func_name}();")
         decompiled_lines.append(f"        break;")
     if default_case:
-        default_func = "default_handler"
+        # Use requested default_case name, or "default_handler" if using DB default
         if db_entry and default_case == db_entry.get("default_case"):
+            # DB default case - use default_handler as function name
             default_func = "default_handler"
+        else:
+            # Request-provided default case - use the requested name
+            default_func = default_case
         decompiled_lines.append(f"    default:")
         decompiled_lines.append(f"        {default_func}();")
         decompiled_lines.append(f"        break;")
