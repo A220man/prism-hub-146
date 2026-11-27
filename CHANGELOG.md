@@ -1,6 +1,27 @@
 # Changelog
 
-## 1.6.0 — work-in-progress checkpoint
+## 1.7.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.7.0 — switch-recognition feature
+
+## 1.7.0 — switch-recognition feature
+
+### Added
+- **Switch statement recognition** for jump tables:
+  - Backend: `POST /api/switch/analyze` recognizes jump table patterns and produces switch/case decompiled output
+  - Pattern recognition fallback when database entry is not available
+  - Recognizes consecutive case values, zero-based switches, and jump table structures
+  - Frontend: SwitchAnalyzer component to be added in future round
+
+### Changed
+- backend/main.py: Added `recognize_switch_pattern()` and `generate_recognized_cases()` functions
+- Tests: Both database lookup and no-database fallback test cases pass
+
+### Test Results
+- All 7 backend tests passing (2 switch + 3 vtable + 2 health + version)
+
 
 Partial code published for continued development. Known issues: STATUS.md.
 
