@@ -36,7 +36,7 @@ Tests: `backend/tests/test_vtable.py`
 
 ### switch-recognition — Switch statement recognition for jump tables
 
-Status: in_progress
+Status: done
 
 Acceptance:
 - Decompiler recognizes jump table patterns

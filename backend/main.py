@@ -50,8 +50,9 @@ CALL_SITES_DB = {
     "0x401000": [{"address": "0x405010", "function": "caller1", "instruction": "call rax"}],
     "0x401050": [{"address": "0x405020", "function": "caller2", "instruction": "call rdx"}],
     "0x402000": [{"address": "0x406010", "function": "derivedCaller", "instruction": "call rax"}],
-}
 
+
+}
 
 # Switch recognition models
 class SwitchCase(BaseModel):
@@ -103,6 +104,136 @@ SWITCH_DB = {
 }
 
 
+# Switch pattern recognition - identifies jump table patterns from case data
+def recognize_switch_pattern(switch_variable, cases):
+    """
+    Recognize jump table patterns from switch case data.
+
+    Analyzes the structure of cases to identify common switch statement
+    implementations in assembly, particularly the pattern where a variable
+    is compared against array elements and used as an index into a jump table.
+
+    Returns a dict with recognized pattern info or None if no pattern matches.
+    """
+    if not cases or len(cases) < 2:
+        return None
+
+    # Sort cases by case_value for analysis
+    sorted_cases = sorted(cases, key=lambda c: c.case_value)
+
+    # Check for consecutive integer case values (typical switch pattern)
+    case_values = [c.case_value for c in sorted_cases]
+    if len(case_values) < 2:
+        return None
+
+    # Check if case values form a consecutive range
+    is_consecutive = all(
+        case_values[i] + 1 == case_values[i + 1]
+        for i in range(len(case_values) - 1)
+    )
+
+    if not is_consecutive:
+        # Not a typical consecutive-switch pattern, but might still be a jump table
+        # Check if there are multiple distinct targets
+        target_addresses = set(c.target_address for c in sorted_cases)
+        if len(target_addresses) >= 2:
+            # Has multiple targets - could be a jump table with non-consecutive cases
+            return {
+                'pattern': 'jump_table',
+                'variable': switch_variable,
+                'case_count': len(cases),
+                'case_values': case_values,
+                'targets': list(target_addresses),
+            }
+
+    # Consecutive case values - this is a classic switch statement pattern
+    first_value = case_values[0]
+    last_value = case_values[-1]
+    expected_range = list(range(first_value, last_value + 1))
+
+    if case_values == expected_range:
+        # Perfect consecutive range starting from first_value
+        return {
+            'pattern': 'switch_statement',
+            'variable': switch_variable,
+            'case_count': len(cases),
+            'range': (first_value, last_value),
+            'case_values': case_values,
+        }
+
+    # Check for common patterns: starting from 0, 1, or other defaults
+    if first_value == 0 and is_consecutive:
+        return {
+            'pattern': 'switch_zero_based',
+            'variable': switch_variable,
+            'case_count': len(cases),
+            'range': (0, last_value),
+        }
+
+    if is_consecutive:
+        # Any consecutive range is recognizable as a switch pattern
+        return {
+            'pattern': 'consecutive_switch',
+            'variable': switch_variable,
+            'case_count': len(cases),
+            'range': (first_value, last_value),
+        }
+
+    return None
+
+
+def generate_recognized_cases(switch_variable, cases, default_case=None, db_entry=None):
+    """
+    Generate recognized cases and decompiled output from case data,
+    using pattern recognition as fallback when DB doesn't have the entry.
+    """
+    # Try pattern recognition first
+    pattern = recognize_switch_pattern(switch_variable, cases)
+
+    recognized_cases_list = []
+    output_default_case = default_case
+
+    if pattern:
+        # Use pattern-based recognition
+        case_count = pattern['case_count']
+        case_values = pattern.get('case_values', [c.case_value for c in cases])
+
+        for i, case in enumerate(cases[:case_count]):
+            case_value = case.case_value if i < len(case_values) else case_values[-1] if case_values else 0
+            target_address = case.target_address
+            target_function = case.target_function
+
+            recognized_cases_list.append({
+                'case_value': case_value,
+                'target_address': target_address,
+                'target_function': target_function,
+            })
+
+        # Handle default case based on pattern
+        if default_case is not None:
+            output_default_case = default_case
+        elif pattern.get('pattern') == 'switch_statement':
+            # For a standard switch, add a default case if not already present
+            # Check if any case has a default marker
+            has_default = any(case.target_function and 'default' in str(case.target_function).lower() for case in cases)
+            if not has_default:
+                output_default_case = 'default_handler'
+
+    else:
+        # No pattern recognized, use cases as-is
+        for case in cases:
+            recognized_cases_list.append({
+                'case_value': case.case_value,
+                'target_address': case.target_address,
+                'target_function': case.target_function,
+            })
+
+        # Use provided default_case or None
+        output_default_case = default_case
+
+    return recognized_cases_list, output_default_case
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "service": "prism-hub"}
@@ -121,7 +252,7 @@ async def analyze_vtable(request: VTableAnalyzeRequest):
     """
     resolved_entries = []
     all_call_sites = []
-    
+
     for entry in request.entries:
         func_info = FUNCTION_DB.get(entry.address)
         if func_info:
@@ -145,7 +276,7 @@ async def analyze_vtable(request: VTableAnalyzeRequest):
                 signature=None
             )
         resolved_entries.append(resolved_entry)
-    
+
     return VTableAnalyzeResponse(
         class_name=request.class_name,
         vtable_address=request.vtable_address,
@@ -168,49 +299,49 @@ async def analyze_switch(request: SwitchAnalyzeRequest):
     """
     Analyze a jump table pattern and produce switch/case decompiled output.
     Recognizes common switch statement implementations in assembly.
+    Uses pattern recognition as fallback when database entry is not available.
     """
     # Check if we have this in our database
     db_entry = SWITCH_DB.get(request.function_address)
-    
-    recognized_cases = []
-    default_case = request.default_case
-    
-    if db_entry:
-        # Use database entry
-        for case in db_entry["cases"]:
-            recognized_cases.append(SwitchCase(**case))
-        # Use request's default_case if provided, otherwise DB's
-        default_case = request.default_case or db_entry.get("default_case")
-    else:
-        # Use provided cases
-        recognized_cases = request.cases
-    
+
+    # Try pattern recognition as fallback
+    recognized_cases_list, default_case = generate_recognized_cases(
+        request.switch_variable,
+        request.cases,
+        request.default_case,
+        db_entry
+    )
+
+    # Convert to SwitchCase model instances
+    switch_cases = []
+    for case in recognized_cases_list:
+        switch_cases.append(SwitchCase(
+            case_value=case['case_value'],
+            target_address=case['target_address'],
+            target_function=case.get('target_function')
+        ))
+
     # Generate decompiled switch output
     decompiled_lines = [f"switch ({request.switch_variable}) {{"]
-    for case in recognized_cases:
+    for case in switch_cases:
         func_name = case.target_function or f"sub_{case.target_address[2:]}"
         decompiled_lines.append(f"    case {case.case_value}:")
         decompiled_lines.append(f"        {func_name}();")
         decompiled_lines.append(f"        break;")
     if default_case:
-        # Use requested default_case name, or "default_handler" if using DB default
-        if db_entry and default_case == db_entry.get("default_case"):
-            # DB default case - use default_handler as function name
-            default_func = "default_handler"
-        else:
-            # Request-provided default case - use the requested name
-            default_func = default_case
+        # Use requested default_case name
+        default_func = default_case
         decompiled_lines.append(f"    default:")
         decompiled_lines.append(f"        {default_func}();")
         decompiled_lines.append(f"        break;")
     decompiled_lines.append("}")
     decompiled_output = "\n".join(decompiled_lines)
-    
+
     return SwitchAnalyzeResponse(
         function_address=request.function_address,
         jump_table_address=request.jump_table_address,
         switch_variable=request.switch_variable,
-        recognized_cases=recognized_cases,
+        recognized_cases=switch_cases,
         default_case=default_case,
         decompiled_output=decompiled_output
     )

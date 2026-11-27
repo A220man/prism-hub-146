@@ -43,7 +43,7 @@
     {
       "id": "switch-recognition",
       "title": "Switch statement recognition for jump tables",
-      "status": "in_progress",
+      "status": "done",
       "acceptance": [
         "Decompiler recognizes jump table patterns",
         "Produces switch/case output instead of if/else chains"
